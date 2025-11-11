@@ -10,7 +10,7 @@ controller → service → repository, a single Prisma client, typed errors, and
 ### Getting started
 1) Install dependencies:
    - `npm install`
-2) Set up MongoDB using Docker:
+a2) Set up MongoDB using Docker:
    - Start MongoDB: `docker-compose up -d mongo`
    - Initialize replica set (required for Prisma transactions):
      ```bash
@@ -57,6 +57,61 @@ Environment is loaded from `.env`. Port defaults to 3010 (`PORT=...` to override
 - `src/mappers/` – Mapping between entities and DTOs
 - `src/utils/` – Utilities (response envelope, URL builder)
 - `src/middleware/` – Middleware (`requestId`, `errorHandler`)
+
+### Request Flow
+
+The following sequence diagram illustrates how a `GET /clients` request travels through the application:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Express as Express App
+    participant Helmet as Helmet Middleware
+    participant RequestId as RequestId Middleware
+    participant Router as Routes
+    participant Controller as ClientsController
+    participant Service as ClientsService
+    participant Repository as ClientsRepository
+    participant Prisma as Prisma Client
+    participant MongoDB
+    participant Mapper as ClientMapper
+    participant ErrorHandler as ErrorHandler
+
+    Client->>Express: GET /clients
+    Express->>Helmet: Apply security headers
+    Helmet-->>Express: Continue
+    Express->>RequestId: Generate/read x-request-id
+    RequestId-->>Express: Set request ID
+    Express->>Router: Match route /clients
+    Router->>Controller: getClients(req, res)
+    
+    Controller->>Service: listClients()
+    Service->>Repository: findAll()
+    Repository->>Prisma: client.findMany()
+    Prisma->>MongoDB: Query Client collection
+    MongoDB-->>Prisma: Return Client entities
+    Prisma-->>Repository: Client[]
+    Repository-->>Service: Client[]
+    
+    Service->>Mapper: toClientDtos(clients)
+    Mapper-->>Service: ClientDto[]
+    Service-->>Controller: ClientDto[]
+    
+    Controller->>Controller: Map to LinkDto[]
+    Controller->>Controller: Build response envelope
+    Controller->>Client: 200 OK { meta, data: LinkDto[] }
+    
+    alt Error occurs
+        Service->>ErrorHandler: throw NotFoundError/BadRequestError
+        ErrorHandler->>Client: Error response { meta, data: null }
+    end
+```
+
+**Key Points:**
+- **Middleware Chain**: Security (Helmet) → Request ID → Body Parsing → Routes
+- **Layered Architecture**: Controller → Service → Repository → Prisma → MongoDB
+- **Data Transformation**: Entities (Client) → DTOs (ClientDto) → Hypermedia (LinkDto)
+- **Error Handling**: Errors bubble up through layers and are caught by the error handler middleware
 
 ### API design
 All responses use a common envelope:
