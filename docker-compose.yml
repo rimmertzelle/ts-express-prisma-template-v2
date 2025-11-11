@@ -1,9 +1,33 @@
-version: '3'
-
 services:
+    mongo:
+        image: 'mongo:latest'
+        ports:
+            - '27017:27017'
+        volumes:
+            - mongodb_data:/data/db
+        environment:
+            - MONGO_INITDB_DATABASE=ts-express-prisma-template
+        command: mongod --replSet rs0
+    mongo-express:
+        image: mongo-express:latest
+        ports:
+            - '8081:8081'
+        environment:
+            - ME_CONFIG_MONGODB_URL=mongodb://mongo:27017/ts-express-prisma-template?directConnection=true
+            - ME_CONFIG_BASICAUTH_USERNAME=admin
+            - ME_CONFIG_BASICAUTH_PASSWORD=pass
+            - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+        depends_on:
+            - mongo
+        restart: unless-stopped
     ts-app:
         working_dir: /app
         image: 'node:lts'
         volumes:
             - .:/app
         tty: true
+        depends_on:
+            - mongo
+
+volumes:
+    mongodb_data:

@@ -19,7 +19,7 @@ export class ClientsRepository {
 	 * @param id Client id
 	 * @returns Promise resolving to a client or null if not found.
 	 */
-	async findById(id: number): Promise<Client | null> {
+	async findById(id: string): Promise<Client | null> {
 		return prisma.client.findUnique({ where: { id } });
 	}
 }

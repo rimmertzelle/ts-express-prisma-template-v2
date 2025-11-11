@@ -2,7 +2,8 @@ import clientsRepository from '../repositories/clientsRepository.js';
 import type { Client } from '../types/client.js';
 import type { ClientDto } from '../dtos/clientDto.js';
 import { toClientDto, toClientDtos } from '../mappers/clientMapper.js';
-import { NotFoundError } from '../errors/httpErrors.js';
+import { NotFoundError, BadRequestError } from '../errors/httpErrors.js';
+import { isValidObjectId } from '../utils/validation.js';
 
 /**
  * Service layer that contains business logic for Clients.
@@ -20,11 +21,15 @@ export class ClientsService {
 
 	/**
 	 * Get a single client by id and map to DTO.
-	 * @param id Client id
+	 * @param id Client id (must be a valid MongoDB ObjectId)
+	 * @throws BadRequestError when id is not a valid ObjectId format
 	 * @throws NotFoundError when client does not exist
 	 * @returns Promise resolving to a ClientDto
 	 */
-	async getClientById(id: number): Promise<ClientDto> {
+	async getClientById(id: string): Promise<ClientDto> {
+		if (!isValidObjectId(id)) {
+			throw new BadRequestError('Invalid client ID format. MongoDB ObjectId must be 24 hexadecimal characters.');
+		}
 		const client = await clientsRepository.findById(id);
 		if (!client) {
 			throw new NotFoundError('Client not found');

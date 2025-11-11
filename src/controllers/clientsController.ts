@@ -42,7 +42,7 @@ export async function getClients(req: Request, res: Response): Promise<void> {
  * Returns a single client resource.
  */
 export async function getClient(req: Request, res: Response, next: NextFunction): Promise<void> {
- const id: number = parseInt(req.params.id);
+ const id: string = req.params.id;
 
   try {
     const client: ClientDto = await clientsService.getClientById(id);

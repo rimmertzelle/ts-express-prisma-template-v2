@@ -10,11 +10,21 @@ controller → service → repository, a single Prisma client, typed errors, and
 ### Getting started
 1) Install dependencies:
    - `npm install`
-2) Generate Prisma client and seed database:
+2) Set up MongoDB using Docker:
+   - Start MongoDB: `docker-compose up -d mongo`
+   - Initialize replica set (required for Prisma transactions):
+     ```bash
+     docker exec $(docker-compose ps -q mongo) mongosh --quiet --eval "try { rs.status() } catch(e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}) }"
+     ```
+   - Or use MongoDB Atlas (cloud) - no replica set setup needed
+3) Set up environment:
+   - Create a `.env` file with `DATABASE_URL="mongodb://localhost:27017/ts-express-prisma-template"`
+   - For MongoDB Atlas: `DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/dbname"`
+4) Generate Prisma client and seed database:
    - `npx prisma generate`
-   - `npx prisma db push` (or `npx prisma migrate dev` if you add migrations)
+   - `npx prisma db push` (MongoDB doesn't use migrations, so use `db push` instead)
    - `npx prisma db seed`
-3) Run:
+5) Run:
    - Dev (watch): `npm run dev`
    - Prod: `npm run start`
 
@@ -26,9 +36,12 @@ Environment is loaded from `.env`. Port defaults to 3010 (`PORT=...` to override
 - `postinstall` runs `prisma generate`
 
 ### Prisma setup
-- Prisma schema: `prisma/schema.prisma` (uses SQLite by default, `DATABASE_URL` in `.env`)
+- Prisma schema: `prisma/schema.prisma` (uses MongoDB, `DATABASE_URL` in `.env`)
+  - Format: `mongodb://localhost:27017/dbname` or MongoDB Atlas connection string
+  - **Important**: MongoDB must be configured as a replica set for Prisma transactions (upsert, createMany, etc.)
+  - IDs are MongoDB ObjectIds (24-character hex strings), not integers
 - Seed: `prisma/seed.ts` executed by `prisma db seed`
-- Prisma config: `prisma.config.ts` (no longer using the deprecated package.json#prisma field)
+- Prisma config: `prisma.config.ts` (loads environment variables from `.env`)
 - Single Prisma client: `src/db/prisma.ts` with a development-safe singleton
 
 ### Project structure
@@ -74,6 +87,8 @@ Following REST/HATEOAS principles, collection endpoints return hyperlinks to the
   - `rel`: `"client"`
   - `title`: friendly label (name/email)
 - `GET /clients/:id` returns the `ClientDto`
+  - **Note**: `:id` must be a valid MongoDB ObjectId (24-character hex string)
+  - Invalid IDs return `400 Bad Request` with a descriptive error message
 
 ### Error handling
 - Throw typed errors from services (e.g., `NotFoundError`)
@@ -92,11 +107,51 @@ Following REST/HATEOAS principles, collection endpoints return hyperlinks to the
 - ES modules are used throughout (`"type": "module"`)
 - Code is linted with ESLint + TypeScript
 - No build output in dev; code runs via tsx (transpile in memory)
+- MongoDB ObjectId validation is handled in the service layer (`src/services/clientsService.ts`)
+- Use mongo-express (http://localhost:8081) or MongoDB Compass to view database contents
 
-### Docker (optional)
-1) `docker-compose up` (or `docker-compose up -d`)
-2) Run commands with `docker-compose exec ts-app ...`
-3) Stop with Ctrl+C or `docker-compose down`
+### Docker Commands
+
+#### Start Services
+- **Start all services**: `docker-compose up -d`
+- **Start MongoDB only**: `docker-compose up -d mongo`
+- **Start mongo-express only**: `docker-compose up -d mongo-express` (requires MongoDB to be running)
+
+#### Stop Services
+- **Stop all services**: `docker-compose down`
+- **Stop specific service**: `docker-compose stop mongo` or `docker-compose stop mongo-express`
+- **Stop and remove containers**: `docker-compose down -v` (removes volumes too)
+
+#### View Logs
+- **All services**: `docker-compose logs -f`
+- **MongoDB logs**: `docker-compose logs -f mongo`
+- **mongo-express logs**: `docker-compose logs -f mongo-express`
+
+#### MongoDB Management
+- **Initialize replica set** (required for Prisma):
+  ```bash
+  docker exec $(docker-compose ps -q mongo) mongosh --quiet --eval "try { rs.status() } catch(e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}) }"
+  ```
+- **Access MongoDB shell**:
+  ```bash
+  docker exec -it $(docker-compose ps -q mongo) mongosh ts-express-prisma-template
+  ```
+- **Check replica set status**:
+  ```bash
+  docker exec $(docker-compose ps -q mongo) mongosh --eval "rs.status()"
+  ```
+
+#### mongo-express (Web UI)
+- **Access**: http://localhost:8081
+- **Login**: username `admin`, password `pass`
+- **Features**: Browse databases, view collections, edit documents
+- **Note**: mongo-express connects to MongoDB running in Docker, not external MongoDB instances
+
+#### Container Management
+- **View running containers**: `docker-compose ps`
+- **View all containers**: `docker-compose ps -a`
+- **Restart a service**: `docker-compose restart mongo`
+- **Rebuild containers**: `docker-compose up -d --build`
 
 ### Extending
 - Add new domains by repeating the pattern:

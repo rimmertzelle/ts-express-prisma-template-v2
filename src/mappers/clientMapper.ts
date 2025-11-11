@@ -6,7 +6,7 @@ import type { ClientDto } from '../dtos/clientDto.js';
  */
 export function toClientDto(client: Client): ClientDto {
 	return {
-		id: client.id ?? 0,
+		id: client.id ?? '',
 		createdAt: (client.createdAt ?? new Date(0)).toISOString(),
 		name: client.name ?? null,
 		email: client.email,
