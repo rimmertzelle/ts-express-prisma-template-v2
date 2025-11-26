@@ -1,21 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
-import clientsService from '../services/clientsService.js';
-import type { ClientDto } from '../dtos/clientDto.js';
-import { ok } from '../utils/response.js';
-import type { LinkDto } from '../dtos/linkDto.js';
-import { resourceUrl } from '../utils/url.js';
+import clientsService from './service.js';
+import type { ClientDto } from './dtos/clientDto.js';
+import type { LinkDto } from './dtos/linkDto.js';
+import { ok } from '../../common/utils/response.js';
+import { resourceUrl } from '../../common/utils/url.js';
 
-/**
- * Interface for the response object
- */
-interface ClientResponse { meta: { count: number, title: string }, data: ClientDto[] }
-
-/**
- * Function to get all people
- * @param req {Request} - The Request object
- * @param res {Response} - The Response object
- * @returns {Promise<void>}
- */
 /**
  * GET /clients
  * Returns a list of hyperlinks to individual client resources.
@@ -32,17 +21,11 @@ export async function getClients(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Function to get a person by id
- * @param req {Request} - The Request object
- * @param res {Response} - The Response object
- * @returns {Promise<void>}
- */
-/**
  * GET /clients/:id
  * Returns a single client resource.
  */
 export async function getClient(req: Request, res: Response, next: NextFunction): Promise<void> {
- const id: string = req.params.id;
+  const id: string = req.params.id;
 
   try {
     const client: ClientDto = await clientsService.getClientById(id);

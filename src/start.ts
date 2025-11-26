@@ -2,10 +2,10 @@
 import Express, { Application, Request, Response, NextFunction } from 'express';
 import * as Dotenv from 'dotenv';
 Dotenv.config({ path: '.env' });
-import IndexRouter from './routes/index.js';
-import { errorHandler } from './middleware/errors/errorHandler.js';
+import { moduleRoutes } from './modules/index.js';
+import { errorHandler } from './common/errors/index.js';
 import helmet from 'helmet';
-import { requestId } from './middleware/requestId.js';
+import { requestId } from './common/middleware/index.js';
 
 /**
  * Express application bootstrap:
@@ -27,7 +27,7 @@ app.use(requestId);
 app.use(Express.json());
 app.use(Express.urlencoded({ extended: true }));
 
-app.use('/', IndexRouter);
+moduleRoutes.forEach((router) => app.use('/', router));
 
 // 404 catch-all handler (middleware)
 app.use((req: Request, res: Response, next: NextFunction) => {

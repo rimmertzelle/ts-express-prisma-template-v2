@@ -7,14 +7,12 @@ import { randomUUID } from 'crypto';
  * - Sets the same id on the response header.
  */
 export function requestId(req: Request, res: Response, next: NextFunction): void {
-	const headerName = 'x-request-id';
-	let id = req.header(headerName);
-	if (!id) {
-		id = randomUUID();
-		req.headers[headerName] = id;
-	}
-	res.setHeader(headerName, id as string);
-	next();
+  const headerName = 'x-request-id';
+  let id = req.header(headerName);
+  if (!id) {
+    id = randomUUID();
+    req.headers[headerName] = id;
+  }
+  res.setHeader(headerName, id as string);
+  next();
 }
-
-

@@ -7,11 +7,9 @@ import { Request } from 'express';
  * @returns Absolute URL string
  */
 export function resourceUrl(req: Request, path: string): string {
-	const protocol = req.protocol;
-	const host = req.get('host');
-	const base = `${protocol}://${host}`;
-	if (path.startsWith('/')) return `${base}${path}`;
-	return `${base}/${path}`;
+  const protocol = req.protocol;
+  const host = req.get('host');
+  const base = `${protocol}://${host}`;
+  if (path.startsWith('/')) return `${base}${path}`;
+  return `${base}/${path}`;
 }
-
-
