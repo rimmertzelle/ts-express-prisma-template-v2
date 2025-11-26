@@ -1,5 +1,6 @@
 import Express, { Router } from 'express';
-import { getClient, getClients } from '../controllers/clientsController.js';
+import { getClient, getClients } from './controller.js';
+
 const router: Router = Express.Router();
 
 /**

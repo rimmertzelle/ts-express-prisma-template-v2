@@ -1,21 +1,21 @@
 import { Request } from 'express';
 
 export interface Meta {
-	status: number;
-	path: string;
-	method: string;
-	timestamp: string;
-	title?: string;
-	count?: number;
-	requestId?: string;
-	page?: number;
-	perPage?: number;
-	total?: number;
+  status: number;
+  path: string;
+  method: string;
+  timestamp: string;
+  title?: string;
+  count?: number;
+  requestId?: string;
+  page?: number;
+  perPage?: number;
+  total?: number;
 }
 
 export interface ApiResponse<T> {
-	meta: Meta;
-	data: T;
+  meta: Meta;
+  data: T;
 }
 
 /**
@@ -25,15 +25,15 @@ export interface ApiResponse<T> {
  * @param extras Optional fields to merge into meta
  */
 export function buildMeta(req: Request, status: number, extras?: Partial<Meta>): Meta {
-	const requestId = (req.headers['x-request-id'] as string | undefined) ?? undefined;
-	return {
-		status,
-		path: req.originalUrl || req.url,
-		method: req.method,
-		timestamp: new Date().toISOString(),
-		requestId,
-		...extras,
-	};
+  const requestId = (req.headers['x-request-id'] as string | undefined) ?? undefined;
+  return {
+    status,
+    path: req.originalUrl || req.url,
+    method: req.method,
+    timestamp: new Date().toISOString(),
+    requestId,
+    ...extras,
+  };
 }
 
 /**
@@ -43,10 +43,10 @@ export function buildMeta(req: Request, status: number, extras?: Partial<Meta>):
  * @param extras Optional meta fields
  */
 export function ok<T>(req: Request, data: T, extras?: Partial<Meta>): ApiResponse<T> {
-	return {
-		meta: buildMeta(req, 200, extras),
-		data,
-	};
+  return {
+    meta: buildMeta(req, 200, extras),
+    data,
+  };
 }
 
 /**
@@ -56,10 +56,10 @@ export function ok<T>(req: Request, data: T, extras?: Partial<Meta>): ApiRespons
  * @param extras Optional meta fields
  */
 export function created<T>(req: Request, data: T, extras?: Partial<Meta>): ApiResponse<T> {
-	return {
-		meta: buildMeta(req, 201, extras),
-		data,
-	};
+  return {
+    meta: buildMeta(req, 201, extras),
+    data,
+  };
 }
 
 /**
@@ -68,10 +68,8 @@ export function created<T>(req: Request, data: T, extras?: Partial<Meta>): ApiRe
  * @param extras Optional meta fields
  */
 export function noContent(req: Request, extras?: Partial<Meta>): ApiResponse<null> {
-	return {
-		meta: buildMeta(req, 204, extras),
-		data: null,
-	};
+  return {
+    meta: buildMeta(req, 204, extras),
+    data: null,
+  };
 }
-
-
