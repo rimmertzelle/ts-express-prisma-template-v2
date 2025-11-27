@@ -4,13 +4,17 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// TODO: move to Prisma 7 if there is an adapter for mongodb
+// For more information: https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/mongodb
+
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "./generated/prisma"
 }
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
+  url = env("DATABASE_URL") // error will be removed once we upgrade to Prisma version 7
 }
 
 model Client {
